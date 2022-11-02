@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -29,9 +30,17 @@ export class ProductsService {
     }
   }
 
-  async findAll() {
+  async findAll(paginationDto: PaginationDto) {
     try {
-      return await this.productRepository.find();
+      const { page = 1, limit = 0 } = paginationDto;
+      const skip = (page - 1) * limit;
+      return await this.productRepository.find({
+        order:{
+          id:'ASC'
+        },
+        take:limit,
+        skip:skip, 
+      });
     } catch (err) {
       this.handleDBExceptions(err);
     }
@@ -42,7 +51,9 @@ export class ProductsService {
       where: { id: id },
     });
     if (!productFinded) {
-      throw new NotFoundException(`The product with id: "${id}" does not exist.`);
+      throw new NotFoundException(
+        `The product with id: "${id}" does not exist.`,
+      );
     }
     return productFinded;
   }
