@@ -7,10 +7,13 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { Repository } from 'typeorm';
+import { QueryBuilder, Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
+import { validate as isUUID } from 'uuid';
+import { SubscriptionLog } from 'rxjs/internal/testing/SubscriptionLog';
+import { title } from 'process';
 
 @Injectable()
 export class ProductsService {
@@ -35,27 +38,36 @@ export class ProductsService {
       const { page = 1, limit = 0 } = paginationDto;
       const skip = (page - 1) * limit;
       return await this.productRepository.find({
-        order:{
-          id:'ASC'
+        order: {
+          id: 'ASC',
         },
-        take:limit,
-        skip:skip, 
+        take: limit,
+        skip: skip,
       });
     } catch (err) {
       this.handleDBExceptions(err);
     }
   }
 
-  async findOne(id: string) {
-    const productFinded = await this.productRepository.findOne({
-      where: { id: id },
-    });
-    if (!productFinded) {
+  async findOne(term: string) {
+    let product: Product;
+    if (isUUID(term)) {
+      product = await this.productRepository.findOneBy({ id: term });
+    } else {
+      const query = this.productRepository.createQueryBuilder();
+      product = await query
+        .where('UPPER(title) =:title or slug =:slug', {
+          title: term.toUpperCase(),
+          slug: term.toLowerCase(),
+        })
+        .getOne();
+    }
+    if (!product) {
       throw new NotFoundException(
-        `The product with id: "${id}" does not exist.`,
+        `The product with: "${term}" does not exist.`,
       );
     }
-    return productFinded;
+    return product;
   }
 
   update(id: string, updateProductDto: UpdateProductDto) {
