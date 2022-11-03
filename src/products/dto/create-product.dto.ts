@@ -32,10 +32,15 @@ export class CreateProductDto {
   @IsOptional()
   stock?: number;
 
-  @IsString({ each: true, message: 'All the sizes have to be a String.' })
+  @IsString({ each: true, message: 'All the sizes must be a String.' })
   @IsArray()
   sizes: string[];
 
   @IsIn(['men', 'women', 'kid', 'unisex'])
   gender: string;
+
+  @IsString({ each: true, message: 'All the tags must be a String' })
+  @IsArray()
+  @IsOptional()
+  tags: string;
 }
