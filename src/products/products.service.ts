@@ -14,6 +14,7 @@ import { Product } from './entities/product.entity';
 import { validate as isUUID } from 'uuid';
 import { SubscriptionLog } from 'rxjs/internal/testing/SubscriptionLog';
 import { title } from 'process';
+import { basename } from 'path';
 
 @Injectable()
 export class ProductsService {
@@ -56,10 +57,14 @@ export class ProductsService {
     } else {
       const query = this.productRepository.createQueryBuilder();
       product = await query
-        .where('UPPER(title) =:title or slug =:slug', {
-          title: term.toUpperCase(),
-          slug: term.toLowerCase(),
-        })
+        // .where('UPPER(title) =:title or slug =:slug', {
+        //   title: term.toUpperCase(),
+        //   slug: term.toLowerCase(),
+        // })
+        .select('product')
+        .from(Product, 'product')
+        .where('UPPER(product.title) =:title', { title: term.toUpperCase() })
+        .orWhere('product.slug =:slug', { slug: term.toLowerCase() })
         .getOne();
     }
     if (!product) {
@@ -70,8 +75,20 @@ export class ProductsService {
     return product;
   }
 
-  update(id: string, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    const product = await this.productRepository.preload({
+      id: id,
+      ...updateProductDto,
+    });
+    if (!product) {
+      throw new NotFoundException(`The product with id "${id}" not found.`);
+    }
+    try {
+      await this.productRepository.save(product);
+      return { message: 'Updated', product };
+    } catch (err) {
+      this.handleDBExceptions(err);
+    }
   }
 
   async remove(id: string) {
