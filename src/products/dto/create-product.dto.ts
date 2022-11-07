@@ -6,6 +6,7 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  IsUrl,
   MinLength,
 } from 'class-validator';
 
@@ -42,5 +43,11 @@ export class CreateProductDto {
   @IsString({ each: true, message: 'All the tags must be a String' })
   @IsArray()
   @IsOptional()
-  tags: string;
+  tags: string[];
+
+  // @IsUrl()
+  @IsString({ each: true })
+  @IsArray()
+  @IsOptional()
+  images: string[];
 }
