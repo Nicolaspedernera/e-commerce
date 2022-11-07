@@ -19,4 +19,8 @@ npm i -g @nestjs/cli
 ```
 docker-compose up -d
 ```
-7. Run Dev : ```npm run start:dev```
+7. Execute seed for DB
+```
+localhost:3000/api/seed
+```
+8. Run Dev : ```npm run start:dev```
