@@ -62,7 +62,7 @@ export class ProductsService {
       });
       return products.map(({ images, ...rest }) => ({
         ...rest,
-        images: images.map((img) => img.url),
+        images: images.map((img) => `http://localhost:3000/api/files/product/${img.url}`),
       }));
     } catch (err) {
       this.handleDBExceptions(err);
@@ -88,7 +88,7 @@ export class ProductsService {
         `The product with: "${term}" does not exist.`,
       );
     }
-    return { ...product, images: product.images.map((image) => image.url) };
+    return { ...product, images: product.images.map((image) =>`http://localhost:3000/api/files/product/${image.url}`) };
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
