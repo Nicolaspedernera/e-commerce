@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  PrimaryColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('users', { orderBy: PrimaryColumn })
 export class User {
@@ -15,14 +22,10 @@ export class User {
   })
   password: string;
 
-  @Column('text', {
-    unique: true,
-  })
+  @Column('text', {})
   firstName: string;
 
-  @Column('text', {
-    unique: true,
-  })
+  @Column('text', {})
   lastName: string;
 
   @Column('boolean', {
@@ -35,4 +38,16 @@ export class User {
     default: ['user'],
   })
   roles: string[];
+
+  @BeforeInsert()
+  checksFieldsBeforeInsert() {
+    this.email = this.email.toLowerCase().trim();
+    this.firstName = this.firstName.trim();
+    this.lastName = this.lastName.trim();
+  }
+
+  @BeforeUpdate()
+  checksFieldsBeforeUpdate() {
+    this.checksFieldsBeforeInsert();
+  }
 }

@@ -11,12 +11,15 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import * as bcrypt from 'bcrypt';
+import { JwtPayload } from './interfaces/jwt-payload.inteface';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRespository: Repository<User>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -27,7 +30,11 @@ export class AuthService {
       const user = this.userRespository.create({ ...userData, password: hash });
       await this.userRespository.save(user);
 
-      return { message: 'created', user };
+      return {
+        message: 'created',
+        ...user,
+        token: this.getJwtToken({ email: user.email }),
+      };
     } catch (err) {
       this.handleDBErrors(err);
     }
@@ -50,8 +57,12 @@ export class AuthService {
     if (!isMatch) {
       throw new UnauthorizedException(`The password is incorrect.`);
     }
-    return user;
-    
+    return { token: this.getJwtToken({ email: user.email }) };
+  }
+
+  private getJwtToken(payload: JwtPayload) {
+    const token = this.jwtService.sign(payload);
+    return token;
   }
 
   private handleDBErrors(err: any): never {
