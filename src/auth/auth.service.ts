@@ -33,7 +33,7 @@ export class AuthService {
       return {
         message: 'created',
         ...user,
-        token: this.getJwtToken({ email: user.email }),
+        token: this.getJwtToken({ id: user.id }),
       };
     } catch (err) {
       this.handleDBErrors(err);
@@ -44,7 +44,7 @@ export class AuthService {
     const { password, email } = loginUserDto;
     const user = await this.userRespository.findOne({
       where: { email },
-      select: { email: true, password: true },
+      select: { email:true ,id: true, password: true },
     });
 
     if (!user) {
@@ -57,7 +57,7 @@ export class AuthService {
     if (!isMatch) {
       throw new UnauthorizedException(`The password is incorrect.`);
     }
-    return { token: this.getJwtToken({ email: user.email }) };
+    return { token: this.getJwtToken({ id: user.id }) };
   }
 
   private getJwtToken(payload: JwtPayload) {
