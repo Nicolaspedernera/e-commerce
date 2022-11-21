@@ -11,6 +11,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
 import { get } from 'http';
 import { AuthService } from './auth.service';
+import { Auth } from './decorators/auth.decorator';
 import { GetUser } from './decorators/get-user.decorators';
 import { RawHeaders } from './decorators/raw-headers.decorators';
 import { RoleProtected } from './decorators/role-protected.decorator';
@@ -33,6 +34,15 @@ export class AuthController {
     return this.authService.login(loginUserDto);
   }
 
+  @Get('/check-status')
+  @Auth(ValidRoles.user)
+  checkAuthStatus(
+    @GetUser() user:User
+  ){
+    return this.authService.checkAuthStatus(user)
+  }
+
+
   @Get('/private')
   @UseGuards(AuthGuard('jwt'))
   testPrivateRoute(
@@ -46,16 +56,19 @@ export class AuthController {
     return { user, email };
   }
 
-  // protect route WITH ROLES// 
+  // protect route WITH ROLES//
 
-  @Get('/privateroles')
+  @Get('/private2')
   @RoleProtected(ValidRoles.superUser, ValidRoles.admin)
   @UseGuards(AuthGuard('jwt'), UserRoleGuard)
-  testPrivateRouteWithRole(
-    @GetUser() user: User,
-    @GetUser('email') email: string,
-  ){
-    return {user, email}
+  testPrivateRoute2(@GetUser() user: User, @GetUser('email') email: string) {
+    return { user, email };
+  }
+
+  // decorator auth.
+  @Get('/private3')
+  @Auth(ValidRoles.admin , ValidRoles.user)
+  testPrivateRoute3(@GetUser() user: User) {
+    return { user };
   }
 }
-

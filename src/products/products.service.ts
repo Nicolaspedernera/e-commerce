@@ -13,6 +13,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { ProductImage } from './entities/product-image.entity';
 import { validate as isUUID } from 'uuid';
+import { User } from 'src/auth/entities/user.entity';
 
 @Injectable()
 export class ProductsService {
@@ -27,7 +28,7 @@ export class ProductsService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(createProductDto: CreateProductDto) {
+  async create(createProductDto: CreateProductDto, user: User) {
     try {
       const { images = [], ...productDetails } = createProductDto;
 
@@ -36,6 +37,7 @@ export class ProductsService {
         images: images.map((image) =>
           this.productImageRepository.create({ url: image }),
         ),
+        user,
       });
 
       await this.productRepository.save(product);
@@ -62,7 +64,9 @@ export class ProductsService {
       });
       return products.map(({ images, ...rest }) => ({
         ...rest,
-        images: images.map((img) => `http://localhost:3000/api/files/product/${img.url}`),
+        images: images.map(
+          (img) => `http://localhost:3000/api/files/product/${img.url}`,
+        ),
       }));
     } catch (err) {
       this.handleDBExceptions(err);
@@ -88,10 +92,15 @@ export class ProductsService {
         `The product with: "${term}" does not exist.`,
       );
     }
-    return { ...product, images: product.images.map((image) =>`http://localhost:3000/api/files/product/${image.url}`) };
+    return {
+      ...product,
+      images: product.images.map(
+        (image) => `http://localhost:3000/api/files/product/${image.url}`,
+      ),
+    };
   }
 
-  async update(id: string, updateProductDto: UpdateProductDto) {
+  async update(id: string, updateProductDto: UpdateProductDto, user: User) {
     const { images, ...toUpdate } = updateProductDto;
 
     const product = await this.productRepository.preload({
@@ -115,6 +124,8 @@ export class ProductsService {
           this.productImageRepository.create({ url: image }),
         );
       }
+      product.user = user;
+      
       await queryRunner.manager.save(product);
       await queryRunner.commitTransaction();
       await queryRunner.release();

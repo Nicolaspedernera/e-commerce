@@ -44,7 +44,7 @@ export class AuthService {
     const { password, email } = loginUserDto;
     const user = await this.userRespository.findOne({
       where: { email },
-      select: { email:true ,id: true, password: true },
+      select: { email: true, id: true, password: true },
     });
 
     if (!user) {
@@ -58,6 +58,10 @@ export class AuthService {
       throw new UnauthorizedException(`The password is incorrect.`);
     }
     return { token: this.getJwtToken({ id: user.id }) };
+  }
+
+  async checkAuthStatus(user: User) {
+    return { ...user , token: this.getJwtToken({ id: user.id }) };
   }
 
   private getJwtToken(payload: JwtPayload) {
