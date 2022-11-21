@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { User } from 'src/auth/entities/user.entity';
 import {
   BeforeInsert,
@@ -10,43 +11,46 @@ import {
 } from 'typeorm';
 import { ProductImage } from './product-image.entity';
 
-@Entity({name:'products'})
+@Entity({ name: 'products' })
 export class Product {
+  @ApiProperty()
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @ApiProperty()
   @Column('text', {
     unique: true,
   })
   title: string;
+  @ApiProperty()
   @Column('float', {
     default: 0,
   })
   price: number;
-
+  @ApiProperty()
   @Column('text', {
     nullable: true,
   })
   description: string;
-
+  @ApiProperty()
   @Column('text', {
     unique: true,
   })
   slug: string;
-
+  @ApiProperty()
   @Column('int', {
     default: 0,
   })
   stock: number;
-
+  @ApiProperty()
   @Column('text', {
     array: true,
   })
   sizes: string[];
-
+  @ApiProperty()
   @Column('text')
   gender: string;
-
+  @ApiProperty()
   @Column('text', {
     array: true,
     default: [],
@@ -62,12 +66,8 @@ export class Product {
 
   // user
 
-  @ManyToOne(
-    ()=>User, 
-    (user)=> user.product,
-    {eager:true}
-  )
-  user:User
+  @ManyToOne(() => User, (user) => user.product, { eager: true })
+  user: User;
 
   @BeforeInsert()
   checkSlugInsert() {
